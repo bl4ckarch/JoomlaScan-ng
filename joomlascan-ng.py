@@ -11,11 +11,10 @@ from bs4 import BeautifulSoup
 import threading
 import time
 import logging
-
-
-import logging
-
-import logging
+import xml.etree.ElementTree as ET
+import base64
+import webbrowser
+from datetime import datetime
 
 class CustomColors:
     # Defining unique color codes for each log level
@@ -346,7 +345,7 @@ def check_config_files(url):
     config_found = False
     sensitive_keywords = ['public $ftp_pass', '$dbtype', 'force_ssl', 'mosConfig_secret', 'mosConfig_dbprefix']
     
-    print("Checking for sensitive config.php files...")
+    pop_info("Checking for sensitive config.php files...")
 
     for config_file in config_files:
         try:
@@ -366,6 +365,235 @@ def check_config_files(url):
 
     if not config_found:
         print("No readable config files found.")
+
+def extract_joomla_version_from_site(url):
+    """
+    Fetch and parse the Joomla version from various XML files hosted on the target site.
+    """
+    endpoints = [
+        'administrator/manifests/files/joomla.xml',
+        'language/en-GB/en-GB.xml',
+        'administrator/components/com_content/content.xml',
+        'administrator/components/com_plugins/plugins.xml',
+        'administrator/components/com_media/media.xml',
+        'mambots/content/moscode.xml'
+    ]
+    
+    # Iterate over the endpoints
+    for endpoint in endpoints:
+        try:
+            joomla_xml_url = f"{url}/{endpoint}"
+            response = requests.get(joomla_xml_url)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Parse the XML content
+                root = ET.fromstring(response.content)
+
+                # Extract the version tag content
+                version_tag = root.find('version')
+                if version_tag is not None:
+                    pop_valid(f"Joomla version found in {endpoint}: {version_tag.text.strip()}")
+                    return version_tag.text.strip()
+                else:
+                    pop_warning(f"Version tag not found in {endpoint}")
+            else:
+                pop_warning(f"Failed to retrieve {endpoint}. HTTP Status Code: {response.status_code}")
+
+        except Exception as e:
+            pop_warning(f"Error fetching or parsing {endpoint}: {e}")
+
+    # If no version is found
+    pop_warning("Failed to find Joomla version from the provided endpoints.")
+    return None
+
+
+def core_joomla_vulnerability_check(ver, url, db_path, vulnerabilities):
+    try:
+        with open(f"{db_path}/corevul.txt", "r") as db_file:
+            vver = ver[:6].replace(" ", "")  # Extract version number and clean spaces
+            vvtf = False
+
+            pop_info("Core Joomla Vulnerability")
+
+            for row in db_file:
+                row = row.strip()  # Remove trailing newline characters
+                fv = row.split('|')[0]  # First part is the version
+                fd = row.split('|')[1]  # Second part is the description
+                sbug = fv.split(',')
+
+                for bs in sbug:
+                    if (vver.lower() in bs.lower()) and (vver[0] == bs[0]):
+                        fd = fd.replace('$target', url)  # Replace $target with the actual target URL
+                        fd = fd.replace('\\n', '\r\n')  # Replace \n with actual newlines
+                        fd = fd.replace('|', '\r\n\r\n')  # Replace | with two newlines
+
+                        # Append a dictionary with 'title' and 'details' keys
+                        vulnerabilities.append({
+                            "title": f"Vulnerability affecting Joomla {vver}",  # Use version as title
+                            "details": fd  # Use fd as details
+                        })
+
+                        vvtf = True
+                        break
+
+            if vvtf:
+                pop_valid("\n".join(vul['details'] for vul in vulnerabilities))
+            else:
+                pop_info("Target Joomla core is not vulnerable")
+
+    except Exception as e:
+        pop_critical(f"Error: {e}")
+
+def do_report(url, joomla_version, start_time, finish_time, vulnerabilities, findings, file_type='html'):
+    output_file = f"{url.replace('http://', '').replace('https://', '').replace('/', '_')}_{datetime.now().strftime('%Y%m%d')}.{file_type}"
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # HTML Template
+    html_template = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Joomla Scan Report</title>
+        <style>
+            body {{
+                font-family: 'Arial', sans-serif;
+                background-color: #f5f5f5;
+                color: #333;
+                margin: 0;
+                padding: 20px;
+            }}
+            h1 {{
+                background-color: #003366;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                border-radius: 8px;
+            }}
+            h2 {{
+                color: #003366;
+                border-bottom: 2px solid #003366;
+                padding-bottom: 5px;
+                margin-top: 30px;
+            }}
+            p {{
+                line-height: 1.6;
+            }}
+            .container {{
+                max-width: 1000px;
+                margin: 0 auto;
+                background-color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }}
+            .vulnerabilities, .findings {{
+                margin-top: 20px;
+            }}
+            .vulnerability-item, .finding-item {{
+                background-color: #f9f9f9;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-left: 5px solid #ff6666;
+                border-radius: 5px;
+            }}
+            .vulnerability-item h3, .finding-item h3 {{
+                color: #e60000;
+                margin: 0;
+            }}
+            .finding-item {{
+                border-left-color: #66cc66;
+            }}
+            .meta-info {{
+                margin-bottom: 20px;
+            }}
+            .meta-info p {{
+                margin: 0;
+            }}
+            .meta-info strong {{
+                color: #003366;
+            }}
+            .footer {{
+                text-align: center;
+                margin-top: 40px;
+                font-size: 0.9em;
+                color: #777;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Joomla Scan Report for {url}</h1>
+
+            <div class="meta-info">
+                <p><strong>Joomla Version:</strong> {joomla_version}</p>
+                <p><strong>Scan started at:</strong> {start_time}</p>
+                <p><strong>Scan finished at:</strong> {finish_time}</p>
+            </div>
+
+            <div class="vulnerabilities">
+                <h2>Vulnerabilities</h2>
+    """
+
+    for vulnerability in vulnerabilities:
+        if isinstance(vulnerability, dict):
+            html_template += f"""
+            <div class="vulnerability-item">
+                <h3>{vulnerability['title']}</h3>
+                <p>{vulnerability['details']}</p>
+            </div>
+            """
+        else:
+            html_template += f"""
+            <div class="vulnerability-item">
+                <p>{vulnerability}</p>
+            </div>
+            """
+
+    html_template += """
+            </div>
+            <div class="findings">
+                <h2>Findings</h2>
+    """
+
+    for finding in findings:
+        if isinstance(finding, dict):
+            html_template += f"""
+            <div class="finding-item">
+                <h3>{finding['description']}</h3>
+                <p>{finding['details']}</p>
+            </div>
+            """
+        else:
+            html_template += f"""
+            <div class="finding-item">
+                <p>{finding}</p>
+            </div>
+            """
+
+    html_template += f"""
+            </div>
+        </div>
+        <div class="footer">
+            <p>Report generated by JoomlaScan-ng on {finish_time}</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Write the HTML to the output file
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(html_template)
+
+    print(f"Report successfully written to '{output_file}'")
+
+    # Open the file in the default web browser if it's an HTML file
+    if file_type == 'html':
+        webbrowser.open(output_file)
+
+
 
 def load_component():
     with open("comptotestdb.txt", "r") as f:
@@ -394,7 +622,7 @@ def check_url_head_content_length(url, path="/"):
         return None
 
 
-def check_readme(url, component):
+def check_readme(url, component, findings):
     pop_info(f"Checking Readme files")
     readme_paths = [
         f"/components/{component}/README.txt",
@@ -409,10 +637,15 @@ def check_readme(url, component):
 
     for path in readme_paths:
         if check_url(url, path) == 200:
-            pop_valid(f"\t README file found \t > {url}{path}")
+            finding = {
+                "description": f"README file found > {url}{path}",
+                "details": "This file may contain sensitive information about the component."
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
 
 
-def check_license(url, component):
+def check_license(url, component, findings):
     pop_info(f"Checking license files")
     license_paths = [
         f"/components/{component}/LICENSE.txt",
@@ -425,11 +658,16 @@ def check_license(url, component):
 
     for path in license_paths:
         if check_url(url, path) == 200:
-            pop_valid(f"\t LICENSE file found \t > {url}{path}")
+            finding = {
+                "description": f"LICENSE file found > {url}{path}",
+                "details": "This file may provide insight into the component's licensing details."
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
 
 
-def check_changelog(url, component):
-    pop_info(f"Checking component directory and files")
+def check_changelog(url, component, findings):
+    pop_info(f"Checking changelog files")
     changelog_paths = [
         f"/components/{component}/CHANGELOG.txt",
         f"/components/{component}/changelog.txt",
@@ -439,10 +677,15 @@ def check_changelog(url, component):
 
     for path in changelog_paths:
         if check_url(url, path) == 200:
-            pop_valid(f"\t CHANGELOG file found \t > {url}{path}")
+            finding = {
+                "description": f"CHANGELOG file found > {url}{path}",
+                "details": "This file may contain information about updates and fixes."
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
 
 
-def check_mainfest(url, component):
+def check_mainfest(url, component, findings):
     pop_info(f"Checking manifest files")
     manifest_paths = [
         f"/components/{component}/MANIFEST.xml",
@@ -453,10 +696,15 @@ def check_mainfest(url, component):
 
     for path in manifest_paths:
         if check_url(url, path) == 200:
-            pop_valid(f"\t MANIFEST file found \t > {url}{path}")
+            finding = {
+                "description": f"MANIFEST file found > {url}{path}",
+                "details": "This file may contain important metadata about the component."
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
 
 
-def check_index(url, component):
+def check_index(url, component, findings):
     pop_info(f"Checking index files")
     index_paths = [
         f"/components/{component}/index.htm",
@@ -466,9 +714,17 @@ def check_index(url, component):
     ]
 
     for path in index_paths:
-        if (check_url_head_content_length(url, path) == '200' and
-                int(check_url_head_content_length(url, path) or 0) > 1000):
-            pop_valid(f"\t INDEX file descriptive found \t > {url}{path}")
+        content_length = check_url_head_content_length(url, path)
+        if content_length == '200' and int(content_length or 0) > 1000:
+            finding = {
+                "description": f"INDEX file descriptive found > {url}{path}",
+                "details": "This INDEX file is larger than 1000 bytes, indicating that it might contain significant content."
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
+
+            
+
 
 
 def index_of(url, path="/"):
@@ -482,53 +738,83 @@ def index_of(url, path="/"):
         return False
 
 
-def scanner(url, component):
-    
+def scanner(url, component, findings):
     if check_url(url, f"/index.php?option={component}") == 200:
-        pop_valid(f"Component found: {component}\t > {url}/index.php?option={component}")
+        finding = f"Component found: {component} > {url}/index.php?option={component}"
+        pop_valid(finding)
+        findings.append(finding)
 
-        check_readme(url, component)
-        check_license(url, component)
-        check_changelog(url, component)
-        check_mainfest(url, component)
-        check_index(url, component)
+        check_readme(url, component, findings)
+        check_license(url, component, findings)
+        check_changelog(url, component, findings)
+        check_mainfest(url, component, findings)
+        check_index(url, component, findings)
 
         if index_of(url, f"/components/{component}/"):
             pop_valid(f"\t Explorable Directory \t > {url}/components/{component}/")
+            findings.append({
+                "description": f"Explorable Directory > {url}/components/{component}/",
+                "details": "Directory is accessible and contains files"
+            })
 
         if index_of(url, f"/administrator/components/{component}/"):
             pop_valid(f"\t Explorable Directory \t > {url}/administrator/components/{component}/")
+            findings.append({
+                "description": f"Explorable Directory > {url}/administrator/components/{component}/",
+                "details": "Administrator directory is accessible"
+            })
 
     elif check_url(url, f"/components/{component}/") == 200:
-        pop_valid(f"Component found: {component}\t > {url}/index.php?option={component}")
+        pop_valid(f"Component found: {component} > {url}/components/{component}/")
+        findings.append({
+                "description": f"Component found: {component} > {url}/components/{component}/",
+                "details": "Component directory is accessible and contains files"
+            })
         pop_warning("\t But possibly it is not active or protected")
 
-        check_readme(url, component)
-        check_license(url, component)
-        check_changelog(url, component)
-        check_mainfest(url, component)
-        check_index(url, component)
+        check_readme(url, component, findings)
+        check_license(url, component, findings)
+        check_changelog(url, component, findings)
+        check_mainfest(url, component, findings)
+        check_index(url, component, findings)
 
         if index_of(url, f"/components/{component}/"):
-            pop_valid(f"\t Explorable Directory \t > {url}/components/{component}/")
+            pop_valid(f"Explorable Directory > {url}/components/{component}/")
+            findings.append({
+                "description": f"Explorable Directory > {url}/components/{component}/",
+                "details": "Directory is accessible and contains files"
+            })
 
         if index_of(url, f"/administrator/components/{component}/"):
             pop_valid(f"\t Explorable Directory \t > {url}/administrator/components/{component}/")
+            findings.append({
+                "description": f"Explorable Directory > {url}/administrator/components/{component}/",
+                "details": "Administrator directory is accessible"
+            })
 
     elif check_url(url, f"/administrator/components/{component}/") == 200:
-        pop_valid(f"Component found: {component}\t > {url}/index.php?option={component}")
-        pop_valid("\t On the administrator components")
+        pop_valid(f"Component found: {component} > {url}/administrator/components/{component}/")
+        findings.append({
+                "description": f"Component found: {component} > {url}/administrator/components/{component}/",
+                "details": "Component directory is accessible and contains files"
+            })
+        pop_warning("\t But possibly it is not active or protected")
 
-        check_readme(url, component)
-        check_license(url, component)
-        check_changelog(url, component)
-        check_mainfest(url, component)
-        check_index(url, component)
+        check_readme(url, component, findings)
+        check_license(url, component, findings)
+        check_changelog(url, component, findings)
+        check_mainfest(url, component, findings)
+        check_index(url, component, findings)
 
         if index_of(url, f"/administrator/components/{component}/"):
             pop_valid(f"\t Explorable Directory \t > {url}/administrator/components/{component}/")
+            findings.append({
+                "description": f"Explorable Directory > {url}/administrator/components/{component}/",
+                "details": "Administrator directory is accessible"
+            })
 
     pool.release()
+
 
 
 def main(argv):
@@ -560,11 +846,27 @@ def main(argv):
     global pool
     pool = threading.BoundedSemaphore(concurrentthreads)
 
+    # Start tracking the scan time
+    start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # List to gather vulnerabilities and findings
+    vulnerabilities = []
+    findings = []
+
     if check_url(url) != 404:
         check_waf(url)
         check_misconfig(url)
         check_backup_files(url)
         check_config_files(url)
+
+        joomla_version = extract_joomla_version_from_site(url)
+        db_path = "./db"
+        if joomla_version:
+            pop_info(f"Detected Joomla version: {joomla_version}")
+            core_joomla_vulnerability_check(joomla_version, url, db_path, vulnerabilities)
+        else:
+            pop_critical("Failed to extract Joomla version.")
+
         if check_url(url, "/robots.txt") == 200:
             pop_valid(f"Robots file found: \t \t > {url}/robots.txt")
         else:
@@ -579,7 +881,7 @@ def main(argv):
 
         for component in dbarray:
             pool.acquire(blocking=True)
-            t = threading.Thread(target=scanner, args=(url, component,))
+            t = threading.Thread(target=scanner, args=(url, component, findings))
             t.start()
 
         while threading.active_count() > 1:
@@ -587,9 +889,13 @@ def main(argv):
 
         pop_dbg("End Scanner")
 
+        # Finish tracking the scan time
+        finish_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Generate the report
+        do_report(url, joomla_version, start_time, finish_time, vulnerabilities=vulnerabilities, findings=findings, file_type='html')
     else:
         pop_err("Site Down, check url please...")
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])
