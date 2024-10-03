@@ -1,4 +1,9 @@
 com_5starhotels
+com_ContentBlogList
+com_Eventing
+com_Fabrik
+com_K2
+com_Projectfork
 com_a3000
 com_a6mambocredits
 com_a6mambohelpdesk
@@ -21,14 +26,11 @@ com_acooldebate
 com_acprojects
 com_acstartseite
 com_acteammember
-com_actionlogs
 com_actions
 com_activities
 com_actualite
-com_acym
 com_acymailing
 com_acysms
-com_acysms_express
 com_adagency
 com_addressbook
 com_adds
@@ -44,7 +46,6 @@ com_agenda
 com_agora
 com_agoragroup
 com_aicontactsafe
-com_aindexdictionaries
 com_airmonoblock
 com_aist
 com_ajax
@@ -70,7 +71,6 @@ com_alphauserpoints
 com_altas
 com_altauserpoints
 com_amblog
-com_amgallery
 com_aml_2
 com_amocourse
 com_annonces
@@ -81,7 +81,6 @@ com_appointment
 com_aprice
 com_arcadegames
 com_archeryscores
-com_ariquiz
 com_artforms
 com_article
 com_articleman
@@ -93,7 +92,6 @@ com_artportal
 com_as
 com_asortyment
 com_astatspro
-com_auctionfactory
 com_autartimonial
 com_autartitarot
 com_autostand
@@ -105,10 +103,8 @@ com_awdwall
 com_awesom
 com_awiki
 com_aysquiz
-com_b2jcontact
 com_b2portfolio
 com_babackup
-com_baforms
 com_banners
 com_bayesiannaivefilter
 com_bazaar
@@ -189,6 +185,7 @@ com_cgtestimonial
 com_checklist
 com_chronoconnectivity
 com_chronocontact
+com_cincopa
 com_cinema
 com_civicrm
 com_cjlib
@@ -206,7 +203,6 @@ com_clubmanager
 com_cmimarketplace
 com_cmotour
 com_cms
-com_collectionfactory
 com_collector
 com_colophon
 com_color
@@ -221,7 +217,6 @@ com_comp
 com_competitions
 com_component
 com_comprofiler
-com_config
 com_connect
 com_contact
 com_contact_enhanced
@@ -289,7 +284,6 @@ com_dshop
 com_dt-register
 com_dtracker
 com_dtregister
-com_dutchfactory
 com_dv
 com_dwgraphs
 com_easy_youtube_gallery
@@ -297,7 +291,6 @@ com_easyblog
 com_easybook
 com_easydiscuss
 com_easygb
-com_easyshop
 com_ecommercewd
 com_econtent
 com_education
@@ -306,7 +299,6 @@ com_ekrishta
 com_elite
 com_elite_experts
 com_emcomposer
-com_emgallery
 com_enmasse
 com_ensenanzas
 com_eportfolio
@@ -336,7 +328,6 @@ com_extplorer-test1
 com_extplorer-test2
 com_extplorer-test3
 com_extrasearch
-com_extroform
 com_ezautos
 com_ezine
 com_ezstore
@@ -354,6 +345,7 @@ com_feederator
 com_fields
 com_filebase
 com_filiale
+com_finder
 com_fireboard
 com_firmy
 com_flash
@@ -409,7 +401,6 @@ com_gigcal
 com_gigfe
 com_gk3_photoslide
 com_gmap
-com_gmapfp
 com_gmaps
 com_gnosis
 com_golfcourseguid
@@ -434,7 +425,6 @@ com_hbooking
 com_hbssearch
 com_hdflvplayer
 com_hdvideoshare
-com_hdwplayer
 com_healthstats
 com_hello
 com_hello_world
@@ -487,9 +477,9 @@ com_itarmory
 com_items
 com_ixxocart
 com_j-projects
-com_j2store
 com_jabode
 com_jacomment
+com_jaextmanager
 com_jajobboard
 com_janews
 com_jashowcase
@@ -507,7 +497,6 @@ com_jcafe
 com_jcalpro
 com_jcart
 com_jce
-com_jclassifiedsmanager
 com_jcollection
 com_jcomments
 com_jcommunity
@@ -542,7 +531,6 @@ com_jemediaplayer
 com_jemembership
 com_jemessenger
 com_jepaypervideo
-com_jephotogallery
 com_jepoll
 com_jeportfolio
 com_jepropertyfinder
@@ -565,7 +553,6 @@ com_jgen
 com_jgive
 com_jgrid
 com_jhotelreservation
-com_jifile
 com_jigsaw
 com_jim
 com_jimtawl
@@ -588,7 +575,6 @@ com_jobgrokapp
 com_jobgroklist
 com_jobline
 com_jobprofile
-com_jobsfactory
 com_jofacebookgallery
 com_joltcard
 com_jombib
@@ -605,12 +591,13 @@ com_joom12pic
 com_joomanager
 com_joomblog
 com_joomclip
-com_joomcrm
 com_joomdle
 com_joomdoc
 com_joomdocs
+com_s5_media_player
 com_joomgalaxy
 com_joomgallery
+com_joomgallery&func
 com_joominaflileselling
 com_joomla
 com_joomla-visites
@@ -649,7 +636,6 @@ com_jpad
 com_jphone
 com_jphoto
 com_jpodium
-com_jpprojects
 com_jprojectmanager
 com_jquarks4s
 com_jquickcontact
@@ -670,6 +656,7 @@ com_jstore
 com_jsubscription
 com_jsupport
 com_jtagcalendar
+com_jtagcalendar 
 com_jtagmembersdirectory
 com_jtagminicart
 com_jticketing
@@ -771,7 +758,6 @@ com_memorybook
 com_menu
 com_mezun
 com_mgm
-com_microdealfactory
 com_minibb
 com_misterestate
 com_mmp
@@ -817,6 +803,7 @@ com_mygallery
 com_myhome
 com_mymsg
 com_myportfolio
+com_myproject
 com_mysms
 com_mytube
 com_n-forms
@@ -848,6 +835,7 @@ com_noticias
 com_novasfh
 com_ns_downloadshop
 com_ob
+com_obSuggest
 com_obsuggest
 com_odudeprofile
 com_omnirealestate
@@ -856,6 +844,7 @@ com_onevote
 com_ongallery
 com_ongumatimesheet20
 com_onismusic
+com_onismusic 
 com_onispetitions
 com_onisquotes
 com_onlineexam
@@ -875,7 +864,6 @@ com_ownbiblio
 com_oziogallery
 com_oziogallery2
 com_packages
-com_pago
 com_pandafminigames
 com_panoramic
 com_parcoauto
@@ -889,7 +877,6 @@ com_pbbooking
 com_pc
 com_pcchess
 com_pccookbook
-com_pennyfactory
 com_people
 com_peoplebook
 com_perchagallery
@@ -950,18 +937,15 @@ com_publisher
 com_qcontacts
 com_qpersonel
 com_question
-com_questions
 com_quickfaq
 com_quicknews
 com_quiz
 com_quran
 com_races
 com_radio
-com_rafflefactory
 com_rand
 com_ranking
 com_rapidrecipe
-com_rbids
 com_rd_download
 com_rdautos
 com_realestatemanager
@@ -984,6 +968,7 @@ com_resman
 com_restaurante
 com_restaurantguide
 com_ricette
+com_rokcandy
 com_rokdownloads
 com_rokmodule
 com_roommgmt
@@ -995,6 +980,7 @@ com_rsappt_pro3
 com_rsbook_15
 com_rscomments
 com_rsfiles
+com_rsform
 com_rsgallery
 com_rsgallery2
 com_rsmonials
@@ -1058,7 +1044,6 @@ com_smslist
 com_sobi2
 com_soccerbet
 com_socialads
-com_socialfactory
 com_socialpinboard
 com_software
 com_solidres
@@ -1077,7 +1062,6 @@ com_spmoviedb
 com_sponsorwall
 com_sportfusion
 com_sportspredictions
-com_sppagebuilder
 com_spsnewsletter
 com_sqlreport
 com_squadmanagement
@@ -1090,7 +1074,6 @@ com_streetguess
 com_surveyforce
 com_surveymanager
 com_svmap
-com_swapfactory
 com_sweetykeeper
 com_swmenufree4
 com_swmenupro
@@ -1114,7 +1097,6 @@ com_tickets
 com_tienda
 com_timereturns
 com_timetable
-com_timetableschedule
 com_timetrack
 com_tophotelmodule
 com_topics
@@ -1148,8 +1130,6 @@ com_userextranet
 com_users
 com_userstatus
 com_utchat
-com_vaccount
-com_vbizz
 com_vehiclemanager
 com_versioning
 com_videodb
@@ -1172,9 +1152,6 @@ com_vmap
 com_voj
 com_volunteer
 com_vr
-com_vrestaurant
-com_vreview
-com_vwishlist
 com_vxdate
 com_wallpapers
 com_waticketsystem
@@ -1189,7 +1166,6 @@ com_wgpicasa
 com_wines
 com_wire_immogest
 com_wisroyq
-com_wkoc
 com_wmi
 com_wmt_content_timeline
 com_wmtgallery
@@ -1201,7 +1177,6 @@ com_wrapper
 com_x-shop
 com_xball
 com_xcloner-backupandrestore
-com_xcloner-backupandstore
 com_xcomp
 com_xeslidegalfx
 com_xevidmegahd
@@ -1233,3 +1208,12 @@ com_zina
 com_zoom
 com_zoomportfolio
 com_ztautolink
+icom_nvitex
+com_cckjseblod
+com_fsave
+com_addproperty
+com_mod_dvfoldercontent
+com_jetext
+com_product_modul
+com_wddownload
+com_download-monitor
