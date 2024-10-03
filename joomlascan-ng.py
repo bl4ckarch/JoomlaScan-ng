@@ -104,7 +104,19 @@ def banner():
     print("    python3 version by @bl4ckarch           ")
     print("-------------------------------------------")
 
-
+def is_url_accessible(url):
+    
+    try:
+        response = requests.get(url, timeout=timeoutconnection)
+        if response.status_code == 200:
+            pop_valid(f"URL {url} is accessible.")
+            return True
+        else:
+            pop_err(f"Site Down, check url please... {url} is not accessible. Status code: {response.status_code}")
+            return False
+    except requests.exceptions.RequestException as e:
+        pop_err(f"Error connecting to {url}: {e}")
+        return False
 def check_waf(url):
     
     try:
@@ -838,6 +850,9 @@ def main(argv):
 
     if url.endswith("/"):
         url = url[:-1]
+    if not is_url_accessible(url):
+        pop_err("The target URL is not accessible. Exiting...")
+        sys.exit(1) 
 
     concurrentthreads = arguments.threads
     global pool
