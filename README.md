@@ -39,12 +39,8 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v]
 ## Requirements
 
 - Python 3
-- `beautifulsoup4` library
-
-To install `beautifulsoup4`, run:
-
 ```bash
-$ sudo pip install beautifulsoup4
+$ sudo pip install -r requirements.txt
 ```
 
 ## Changelog
@@ -54,6 +50,7 @@ $ sudo pip install beautifulsoup4
 - **2016.03.18** - Version 0.3beta: Detection of index files in component directories.
 - **2016.03.14** - Version 0.2beta: Detection of administrator components and important files like Readme, Changelog, License.
 - **2016.02.12** - Version 0.1beta: Initial release.
+- **2024.03.10** - Version 1.0: python3 release
 
 ## License
 
