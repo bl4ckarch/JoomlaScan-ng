@@ -14,9 +14,6 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 
 ## Upcoming Features
 
-- Joomla CMS version detection
-- Module discovery
-- Custom User-Agent support and random User-Agent options
 - User-configurable connection timeout
 - Vulnerable component database integration
 
