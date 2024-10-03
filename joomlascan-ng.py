@@ -17,7 +17,6 @@ import webbrowser
 from datetime import datetime
 
 class CustomColors:
-    # Defining unique color codes for each log level
     DEBUG = '\033[94m'   
     INFO = '\033[92m'    
     VALID = '\033[96m'   
@@ -107,7 +106,7 @@ def banner():
 
 
 def check_waf(url):
-    # Send a request to the target URL and capture the headers
+    
     try:
         response = requests.get(url)
         headers = response.headers
@@ -116,152 +115,145 @@ def check_waf(url):
         waf_detected = False
         pop_warning("Starting WAF Detector...")
 
-        # Check for CloudFlare
+        
         if "cloudflare-nginx" in source or "CF-Chl-Bypass" in source or "cloudflare" in source or "__cfduid" in source:
             pop_warning("Firewall detected: CloudFlare")
             waf_detected = True
 
-        # Check for Incapsula
+        
         elif "incapsula" in source or "incap_ses" in source or "visid_incap" in source:
             pop_warning("Firewall detected: Incapsula")
             waf_detected = True
 
-        # Check for Shieldfy
+        
         elif "ShieldfyWebShield" in source:
             pop_warning("Firewall detected: Shieldfy")
             waf_detected = True
 
-        # Check for Sucuri
+        
         elif "X-Sucuri-ID" in source:
             pop_warning("Firewall detected: Sucuri Firewall (Sucuri Cloudproxy)")
             waf_detected = True
 
-        # Check for Anquanbao
+        
         elif "X-Powered-By-Anquanbao" in source:
             pop_warning("Firewall detected: Anquanbao")
             waf_detected = True
 
-        # Check for Barracuda
+        
         elif "barra_counter_session" in source or "BNI__BARRACUDA_LB_COOKIE" in source or "BNI_persistence" in source:
             pop_warning("Firewall detected: Barracuda Application Firewall")
             waf_detected = True
 
-        # Check for BinarySec
+        
         elif "BinarySec" in source or "x-binarysec-via" in source or "x-binarysec-nocache" in source:
             pop_warning("Firewall detected: BinarySec")
             waf_detected = True
 
-        # Check for BlockDoS
+        
         elif "BlockDos.net" in source:
             pop_warning("Firewall detected: BlockDoS")
             waf_detected = True
 
-        # Check for ChinaCache
+        
         elif "Powered-By-ChinaCache" in source:
             pop_warning("Firewall detected: ChinaCache-CDN")
             waf_detected = True
 
-        # Check for Cisco ACE
+        
         elif "ACE XML Gateway" in source:
             pop_warning("Firewall detected: Cisco ACE XML Gateway")
             waf_detected = True
 
-        # Check for Comodo WAF
+        
         elif "Protected by COMODO WAF" in source:
             pop_warning("Firewall detected: Comodo WAF")
             waf_detected = True
 
-        # Check for Applicure dotDefender
+        
         elif "X-dotDefender-denied" in source:
             pop_warning("Firewall detected: Applicure dotDefender")
             waf_detected = True
 
-        # Check for F5 BIG-IP APM
+        
         elif "BigIP" in source or "BIG-IP" in source or "BIGIP" in source or "LastMRH_Session" in source or "MRHSequence" in source:
             pop_warning("Firewall detected: F5 BIG-IP APM")
             waf_detected = True
 
-        # Check for F5 Trafficshield
+        
         elif "F5-TrafficShield" in source:
             pop_warning("Firewall detected: F5 Trafficshield")
             waf_detected = True
 
-        # Check for FortiWeb
+        
         elif "FORTIWAFSID" in source:
             pop_warning("Firewall detected: FortiWeb")
             waf_detected = True
 
-        # Check for Mission Control Application Shield
+        
         elif "Mission Control Application Shield" in source:
             pop_warning("Firewall detected: Mission Control Application Shield")
             waf_detected = True
 
-        # Check for Naxsi
+        
         elif "naxsi" in source:
             pop_warning("Firewall detected: Naxsi")
             waf_detected = True
 
-        # Check for NetContinuum
+        
         elif "NCI__SessionId" in source:
             pop_warning("Firewall detected: NetContinuum")
             waf_detected = True
 
-        # Check for Citrix NetScaler
+        
         elif "pwcount" in source or "ns_af" in source or "citrix_ns_id" in source or "NSC_" in source:
             pop_warning("Firewall detected: Citrix NetScaler")
             waf_detected = True
 
-        # Check for NSFocus
+        
         elif "NSFocus" in source:
             pop_warning("Firewall detected: NSFocus")
             waf_detected = True
 
-        # Check for PowerCDN
+    
         elif "PowerCDN" in source:
             pop_warning("Firewall detected: PowerCDN")
             waf_detected = True
 
-        # Check for Profense
+        
         elif "profense" in source:
             pop_warning("Firewall detected: Profense")
             waf_detected = True
 
-        # Check for Radware AppWall
+        
         elif "X-SL-CompState" in source:
             pop_warning("Firewall detected: Radware AppWall")
             waf_detected = True
 
-        # Check for Safedog
         elif "Safedog" in source or "safedog" in source:
             pop_warning("Firewall detected: Safedog")
             waf_detected = True
 
-        # Check for Teros WAF
         elif "st8id" in source:
             pop_warning("Firewall detected: Teros WAF")
             waf_detected = True
 
-        # Check for USP Secure Entry Server
         elif "Secure Entry Server" in source:
             pop_warning("Firewall detected: USP Secure Entry Server")
             waf_detected = True
 
-        # Check for Wallarm
         elif "nginx-wallarm" in source:
             pop_warning("Firewall detected: Wallarm")
             waf_detected = True
 
-        # Check for West263CDN
         elif "WT263CDN" in source:
             pop_warning("Firewall detected: West263CDN")
             waf_detected = True
 
-        # Check for 360WangZhanBao
         elif "X-Powered-By-360WZB" in source:
             pop_warning("Firewall detected: 360WangZhanBao")
             waf_detected = True
 
-        # Check for ModSecurity
         modsec_response = requests.get(url + "/../../etc")
         modsec_source = str(modsec_response.headers)
         if "mod_security" in modsec_source or "Mod_Security" in modsec_source or "NOYB" in modsec_source:
@@ -328,7 +320,7 @@ def check_backup_files(url):
             backup_url = f"{url}/{backup_file}"
             response = requests.head(backup_url)
 
-            # Check if the content type is not text/html, indicating it might be a backup file
+            
             if response.status_code == 200 and 'text/html' not in response.headers.get('Content-Type', ''):
                 pop_valid(f"Backup file found: {backup_url}")
                 backup_found = True
@@ -340,7 +332,7 @@ def check_backup_files(url):
         pop_info("No backup files found.")
 
 def check_config_files(url):
-    # List of sensitive configuration file names
+    
     config_files = [
         'configuration.php_old', 'configuration.php_new', 'configuration.php~', 'configuration.php.new', 'configuration.php.new~',
         'configuration.php.old', 'configuration.php.old~', 'configuration.bak', 'configuration.php.bak', 'configuration.php.bkp',
@@ -360,7 +352,7 @@ def check_config_files(url):
             config_url = f"{url}/{config_file}"
             response = requests.get(config_url)
 
-            # Check for sensitive information in the config file
+            
             if response.status_code == 200:
                 for keyword in sensitive_keywords:
                     if keyword in response.text:
@@ -387,18 +379,18 @@ def extract_joomla_version_from_site(url):
         'mambots/content/moscode.xml'
     ]
     
-    # Iterate over the endpoints
+    
     for endpoint in endpoints:
         try:
             joomla_xml_url = f"{url}/{endpoint}"
             response = requests.get(joomla_xml_url)
 
-            # Check if the request was successful
+            
             if response.status_code == 200:
-                # Parse the XML content
+                
                 root = ET.fromstring(response.content)
 
-                # Extract the version tag content
+                
                 version_tag = root.find('version')
                 if version_tag is not None:
                     pop_valid(f"Joomla version found in {endpoint}: {version_tag.text.strip()}")
@@ -411,7 +403,7 @@ def extract_joomla_version_from_site(url):
         except Exception as e:
             pop_warning(f"Error fetching or parsing {endpoint}: {e}")
 
-    # If no version is found
+    
     pop_warning("Failed to find Joomla version from the provided endpoints.")
     return None
 
@@ -419,27 +411,27 @@ def extract_joomla_version_from_site(url):
 def core_joomla_vulnerability_check(ver, url, db_path, vulnerabilities):
     try:
         with open(f"{db_path}/corevul.txt", "r") as db_file:
-            vver = ver[:6].replace(" ", "")  # Extract version number and clean spaces
+            vver = ver[:6].replace(" ", "")  
             vvtf = False
 
             pop_info("Core Joomla Vulnerability")
 
             for row in db_file:
-                row = row.strip()  # Remove trailing newline characters
-                fv = row.split('|')[0]  # First part is the version
-                fd = row.split('|')[1]  # Second part is the description
+                row = row.strip()  
+                fv = row.split('|')[0]  
+                fd = row.split('|')[1]  
                 sbug = fv.split(',')
 
                 for bs in sbug:
                     if (vver.lower() in bs.lower()) and (vver[0] == bs[0]):
-                        fd = fd.replace('$target', url)  # Replace $target with the actual target URL
-                        fd = fd.replace('\\n', '\r\n')  # Replace \n with actual newlines
-                        fd = fd.replace('|', '\r\n\r\n')  # Replace | with two newlines
+                        fd = fd.replace('$target', url)  
+                        fd = fd.replace('\\n', '\r\n')  
+                        fd = fd.replace('|', '\r\n\r\n')  
 
-                        # Append a dictionary with 'title' and 'details' keys
+                        
                         vulnerabilities.append({
-                            "title": f"Vulnerability affecting Joomla {vver}",  # Use version as title
-                            "details": fd  # Use fd as details
+                            "title": f"Vulnerability affecting Joomla {vver}",  
+                            "details": fd  
                         })
 
                         vvtf = True
@@ -456,7 +448,7 @@ def core_joomla_vulnerability_check(ver, url, db_path, vulnerabilities):
 def do_report(url, joomla_version, start_time, finish_time, vulnerabilities, findings, file_type='html'):
     output_file = f"{url.replace('http://', '').replace('https://', '').replace('/', '_')}_{datetime.now().strftime('%Y%m%d')}.{file_type}"
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # HTML Template
+    
     html_template = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -591,13 +583,11 @@ def do_report(url, joomla_version, start_time, finish_time, vulnerabilities, fin
     </html>
     """
 
-    # Write the HTML to the output file
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html_template)
 
     print(f"Report successfully written to '{output_file}'")
 
-    # Open the file in the default web browser if it's an HTML file
     if file_type == 'html':
         webbrowser.open(output_file)
 
@@ -839,7 +829,6 @@ def main(argv):
     except Exception as e:
         sys.exit(1)
 
-    # Set up logging based on debug flag
     setup_logging(arguments.debug)
 
     url = arguments.url
@@ -854,10 +843,8 @@ def main(argv):
     global pool
     pool = threading.BoundedSemaphore(concurrentthreads)
 
-    # Start tracking the scan time
     start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    # List to gather vulnerabilities and findings
     vulnerabilities = []
     findings = []
 
@@ -897,10 +884,10 @@ def main(argv):
 
         pop_dbg("End Scanner")
 
-        # Finish tracking the scan time
+
         finish_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Generate the report
+
         do_report(url, joomla_version, start_time, finish_time, vulnerabilities=vulnerabilities, findings=findings, file_type='html')
     else:
         pop_err("Site Down, check url please...")

@@ -17,12 +17,14 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 - User-configurable connection timeout
 - Vulnerable component database integration
 - Dockerfile
-- Proxied Requests 
+- Proxied Requests
+- Check registration 
+- Check Joomla debug mode on!  
 
 ## Usage
 
 ```bash
-usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v]
+usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d]
 ```
 
 ### Optional Arguments:
