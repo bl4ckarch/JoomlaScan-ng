@@ -34,7 +34,12 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v]
 
 ## Screenshot
 
-![Screenshot](http://cloud.draghetti.it/Rehost_Image/Joomla_Scan_0.4b.png)
+- Example scan  
+![Screenshot](img/example.png)
+
+- Example output file in html
+
+![Screenshot](img/example1.png)
 
 ## Requirements
 
