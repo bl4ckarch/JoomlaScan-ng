@@ -332,6 +332,40 @@ def check_backup_files(url):
     if not backup_found:
         pop_info("No backup files found.")
 
+def check_config_files(url):
+    # List of sensitive configuration file names
+    config_files = [
+        'configuration.php_old', 'configuration.php_new', 'configuration.php~', 'configuration.php.new', 'configuration.php.new~',
+        'configuration.php.old', 'configuration.php.old~', 'configuration.bak', 'configuration.php.bak', 'configuration.php.bkp',
+        'configuration.txt', 'configuration.php.txt', 'configuration - Copy.php', 'configuration.php.swo', 'configuration.php_bak',
+        'configuration.php#', 'configuration.orig', 'configuration.php.save', 'configuration.php.original', 'configuration.php.swp',
+        'configuration.save', '.configuration.php.swp', 'configuration.php1', 'configuration.php2', 'configuration.php3',
+        'configuration.php4', 'configuration.php6', 'configuration.php7', 'configuration.phtml', 'configuration.php-dist'
+    ]
+
+    config_found = False
+    sensitive_keywords = ['public $ftp_pass', '$dbtype', 'force_ssl', 'mosConfig_secret', 'mosConfig_dbprefix']
+    
+    print("Checking for sensitive config.php files...")
+
+    for config_file in config_files:
+        try:
+            config_url = f"{url}/{config_file}"
+            response = requests.get(config_url)
+
+            # Check for sensitive information in the config file
+            if response.status_code == 200:
+                for keyword in sensitive_keywords:
+                    if keyword in response.text:
+                        print(f"Readable config file found: {config_url}")
+                        config_found = True
+                        break
+
+        except Exception as e:
+            print(f"Error while checking {config_file}: {e}")
+
+    if not config_found:
+        print("No readable config files found.")
 
 def load_component():
     with open("comptotestdb.txt", "r") as f:
@@ -530,6 +564,7 @@ def main(argv):
         check_waf(url)
         check_misconfig(url)
         check_backup_files(url)
+        check_config_files(url)
         if check_url(url, "/robots.txt") == 200:
             pop_valid(f"Robots file found: \t \t > {url}/robots.txt")
         else:
