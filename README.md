@@ -16,6 +16,8 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 
 - User-configurable connection timeout
 - Vulnerable component database integration
+- Dockerfile
+- Proxied Requests 
 
 ## Usage
 
@@ -31,6 +33,8 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v]
 | `-u URL, --url URL` | The Joomla URL/domain to scan |
 | `-t THREADS, --threads THREADS` | Number of threads to use (default: 10) |
 | `-v, --version` | Display the version number and exit |
+| `-d, --debug` | Display debug requests during execution |
+
 
 ## Screenshot
 
