@@ -266,13 +266,13 @@ def check_waf(url):
 
     except Exception as e:
         print(f"Error detecting WAF: {e}")
-        
+
 def missconfig_check(url):
     # List of common misconfigured paths
     configs = ['server-status', 'server-info']
     misconfig_found = False
 
-    print("Checking for misconfigured Apache info/status files...")
+    pop_info("Checking for misconfigured Apache info/status files...")
 
     for config in configs:
         try:
@@ -286,11 +286,11 @@ def missconfig_check(url):
             if ("Apache Server Information" in source or
                 "Server Root" in source or
                 "Apache Status" in source):
-                print(f"Interesting file found: {config_url}")
+                pop_valid(f"Interesting file found: {config_url}")
                 misconfig_found = True
 
         except Exception as e:
-            print(f"Error while checking {config}: {e}")
+            pop_critical(f"Error while checking {config}: {e}")
 
     if not misconfig_found:
         print("Readable info/status files are not found.")
