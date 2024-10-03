@@ -1,52 +1,64 @@
 # Joomla Scan
-A free and open source software to find the components installed in Joomla CMS, built out of the ashes of Joomscan.
 
-# Features
-* Scanning the Joomla CMS sites in search of components/extensions (database of more than 600 components);
-* Locate the browsable folders of component (Index of ...);
-* Locate the components disabled or protected
-* Locate each file useful to identify the version of a components (Readme, Manifest, License, Changelog)
-* Locate the robots.txt file or error_log file
-* Supports HTTP or HTTPS connections
-* Connection timeout
+A free and open-source tool to detect installed components on Joomla CMS sites, built as a modern alternative to Joomscan  rewritten in python3 with some colorations
 
-# Next Features
-* Locate the version of Joomla CMS
-* Find Module
-* Customized User Agent and Random Agent
-* The user can change the connection timeout
-* A database of vulnerable components
+## Features
 
-# Usage
+- Scan Joomla CMS sites to identify installed components and extensions (database with over 600 components)
+- Detect browsable component directories (`Index of ...`)
+- Find disabled or protected components
+- Identify files that help determine the component version (e.g., README, Manifest, License, Changelog)
+- Locate `robots.txt` and `error_log` files
+- Support for HTTP and HTTPS connections
+- Configurable connection timeout
 
+## Upcoming Features
+
+- Joomla CMS version detection
+- Module discovery
+- Custom User-Agent support and random User-Agent options
+- User-configurable connection timeout
+- Vulnerable component database integration
+
+## Usage
+
+```bash
 usage: python joomlascan.py [-h] [-u URL] [-t THREADS] [-v]
+```
 
-optional arguments:
+### Optional Arguments:
 
-    -h, --help              show this help message and exit
- 
-    -u URL, --url URL       The Joomla URL/domain to scan.
-    -t THREADS, --threads   THREADS
-                            The number of threads to use when multi-threading
-                            requests (default: 10).
-    -v, --version           show program's version number and exit
+| Argument | Description |
+| --- | --- |
+| `-h, --help` | Show help message and exit |
+| `-u URL, --url URL` | The Joomla URL/domain to scan |
+| `-t THREADS, --threads THREADS` | Number of threads to use (default: 10) |
+| `-v, --version` | Display the version number and exit |
 
-# Screenshot
+## Screenshot
 
-![alt Screenshot 0.4b](http://cloud.draghetti.it/Rehost_Image/Joomla_Scan_0.4b.png)
+![Screenshot](http://cloud.draghetti.it/Rehost_Image/Joomla_Scan_0.4b.png)
 
-# Requirements
-* Python
-* beautifulsoup4 (To install this library from terminal type: $ sudo easy_install beautifulsoup4 or $ sudo pip install beautifulsoup4)
+## Requirements
 
-# Changelog
+- Python 3
+- `beautifulsoup4` library
 
-* 2016.12.12 0.5beta > Implementation of the Multi Thread, Updated database from 656 to 686 components, Fix Cosmetics and Minor Fix.
-* 2016.05.20 0.4beta > Find README.md, Find Manifes.xml, Find Index file of Components (Only if descriptive), User Agent and TimeOut on Python Request, Updated database from 587 to 656 components, Fix Cosmetics and Minor Fix.
-* 2016.03.18 0.3beta > Find index file on components directory
-* 2016.03.14 0.2beta > Find administrator components and file Readme, Changelog, License.
-* 2016.02.12 0.1beta > Initial release
+To install `beautifulsoup4`, run:
 
-# License
-GNU, version 3
+```bash
+$ sudo pip install beautifulsoup4
+```
+
+## Changelog
+
+- **2016.12.12** - Version 0.5beta: Multi-threading support added, database updated (656 to 686 components), minor bug fixes.
+- **2016.05.20** - Version 0.4beta: Support for `README.md`, `Manifest.xml`, detection of descriptive index files, custom User-Agent, configurable timeout, database update (587 to 656 components), minor fixes.
+- **2016.03.18** - Version 0.3beta: Detection of index files in component directories.
+- **2016.03.14** - Version 0.2beta: Detection of administrator components and important files like Readme, Changelog, License.
+- **2016.02.12** - Version 0.1beta: Initial release.
+
+## License
+
+Licensed under the GNU General Public License v3.0.
 
