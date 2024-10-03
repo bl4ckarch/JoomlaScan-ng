@@ -20,7 +20,7 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 ## Usage
 
 ```bash
-usage: python joomlascan.py [-h] [-u URL] [-t THREADS] [-v]
+usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v]
 ```
 
 ### Optional Arguments:
