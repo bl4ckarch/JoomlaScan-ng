@@ -88,8 +88,15 @@ timeoutconnection = 5
 pool = None
 swversion = "1.0"
 
-
 def banner():
+    print("""
+   __                        _         __                                   
+   \ \  ___   ___  _ __ ___ | | __ _  / _\ ___ __ _ _ __        _ __   __ _ 
+    \ \/ _ \ / _ \| '_ ` _ \| |/ _` | \ \ / __/ _` | '_ \ _____| '_ \ / _` |
+ /\_/ / (_) | (_) | | | | | | | (_| | _\ \ (_| (_| | | | |_____| | | | (_| |
+ \___/ \___/ \___/|_| |_| |_|_|\__,_| \__/\___\__,_|_| |_|     |_| |_|\__, |
+                                                                      |___/ 
+    """)
     print("--------------------------------------------")
     print("      	    Joomla Scan-ng                 ")
     print("   Usage: python3 joomlascan-ng.py -u <target> ")
@@ -97,6 +104,7 @@ def banner():
     print("    Originally created by Andrea Draghetti  ")
     print("    python3 version by @bl4ckarch           ")
     print("-------------------------------------------")
+
 
 def check_waf(url):
     # Send a request to the target URL and capture the headers
