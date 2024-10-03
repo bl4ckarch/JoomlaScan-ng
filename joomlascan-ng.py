@@ -267,8 +267,7 @@ def check_waf(url):
     except Exception as e:
         print(f"Error detecting WAF: {e}")
 
-def missconfig_check(url):
-    # List of common misconfigured paths
+def check_misconfig(url):
     configs = ['server-status', 'server-info']
     misconfig_found = False
 
@@ -276,13 +275,9 @@ def missconfig_check(url):
 
     for config in configs:
         try:
-            # Build the full URL to the config path
             config_url = f"{url}/{config}"
-            # Send a request to the URL
             response = requests.get(config_url)
             source = response.text
-
-            # Check for keywords that indicate the presence of misconfigured files
             if ("Apache Server Information" in source or
                 "Server Root" in source or
                 "Apache Status" in source):
@@ -293,7 +288,50 @@ def missconfig_check(url):
             pop_critical(f"Error while checking {config}: {e}")
 
     if not misconfig_found:
-        print("Readable info/status files are not found.")
+        pop_warning("Readable info/status files are not found.")
+
+def check_backup_files(url):
+    backup_files = [
+        '1.txt', '2.txt', '1.gz', '1.rar', '1.save', '1.tar', '1.tar.bz2', '1.tar.gz', '1.tgz', '1.tmp', '1.zip',
+        '2.back', '2.backup', '2.gz', '2.rar', '2.save', '2.tar', '2.tar.bz2', '2.tar.gz', '2.tgz', '2.tmp', '2.zip',
+        'backup.back', 'backup.backup', 'backup.bak', 'backup.bck', 'backup.bkp', 'backup.copy', 'backup.gz',
+        'backup.old', 'backup.orig', 'backup.rar', 'backup.sav', 'backup.save', 'backup.sql~', 'backup.sql.back',
+        'backup.sql.backup', 'backup.sql.bak', 'backup.sql.bck', 'backup.sql.bkp', 'backup.sql.copy', 'backup.sql.gz',
+        'backup.sql.old', 'backup.sql.orig', 'backup.sql.rar', 'backup.sql.sav', 'backup.sql.save', 'backup.sql.tar',
+        'backup.sql.tar.bz2', 'backup.sql.tar.gz', 'backup.sql.tgz', 'backup.sql.tmp', 'backup.sql.txt', 'backup.sql.zip',
+        'backup.tar', 'backup.tar.bz2', 'backup.tar.gz', 'backup.tgz', 'backup.txt', 'backup.zip', 'database.back',
+        'database.backup', 'database.bak', 'database.bck', 'database.bkp', 'database.copy', 'database.gz', 'database.old',
+        'database.orig', 'database.rar', 'database.sav', 'database.save', 'database.sql~', 'database.sql.back',
+        'database.sql.backup', 'database.sql.bak', 'database.sql.bck', 'database.sql.bkp', 'database.sql.copy',
+        'database.sql.gz', 'database.sql.old', 'database.sql.orig', 'database.sql.rar', 'database.sql.sav', 'database.sql.save',
+        'database.sql.tar', 'database.sql.tar.bz2', 'database.sql.tar.gz', 'database.sql.tgz', 'database.sql.tmp',
+        'database.sql.txt', 'database.sql.zip', 'joom.back', 'joom.backup', 'joom.bak', 'joom.bck', 'joom.bkp', 'joom.copy',
+        'joom.gz', 'joomla.back', 'joomla.backup', 'joomla.bak', 'joomla.bck', 'joomla.bkp', 'joomla.copy', 'joomla.gz',
+        'joomla.old', 'joomla.orig', 'joomla.rar', 'joomla.sav', 'joomla.save', 'joomla.tar', 'joomla.tar.bz2', 'joomla.tar.gz',
+        'joomla.tgz', 'joomla.zip', 'site.back', 'site.backup', 'site.bak', 'site.bck', 'site.bkp', 'site.copy', 'site.gz',
+        'site.old', 'site.orig', 'site.rar', 'site.sav', 'site.save', 'site.tar', 'site.tar.bz2', 'site.tar.gz', 'site.tgz',
+        'site.zip'
+    ]
+
+    backup_found = False
+    pop_info("Finding common backup files...")
+
+    for backup_file in backup_files:
+        try:
+            backup_url = f"{url}/{backup_file}"
+            response = requests.head(backup_url)
+
+            # Check if the content type is not text/html, indicating it might be a backup file
+            if response.status_code == 200 and 'text/html' not in response.headers.get('Content-Type', ''):
+                pop_valid(f"Backup file found: {backup_url}")
+                backup_found = True
+
+        except Exception as e:
+            pop_critical(f"Error while checking {backup_file}: {e}")
+
+    if not backup_found:
+        pop_info("No backup files found.")
+
 
 def load_component():
     with open("comptotestdb.txt", "r") as f:
@@ -490,6 +528,8 @@ def main(argv):
 
     if check_url(url) != 404:
         check_waf(url)
+        check_misconfig(url)
+        check_backup_files(url)
         if check_url(url, "/robots.txt") == 200:
             pop_valid(f"Robots file found: \t \t > {url}/robots.txt")
         else:
