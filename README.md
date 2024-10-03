@@ -1,4 +1,4 @@
-# Joomla Scan
+# JoomlaScan-ng
 
 A free and open-source tool to detect installed components on Joomla CMS sites, built as a modern alternative to Joomscan  rewritten in python3 with some colorations
 
