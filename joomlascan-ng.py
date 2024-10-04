@@ -548,6 +548,9 @@ def do_report(url, joomla_version, start_time, finish_time, vulnerabilities, fin
                 color: #e60000;
                 margin: 0;
             }}
+            .finding-item h3 {{
+                color: red;  /* Ensure component found messages are styled in red */
+            }}
             .finding-item {{
                 border-left-color: #66cc66;
             }}
@@ -804,8 +807,10 @@ def index_of(url, path="/"):
 def scanner(url, component, findings, proxy=None):
     if check_url(url, f"/index.php?option={component}", proxy) == 200:
         finding = f"Component found: {component} > {url}/index.php?option={component}"
-        pop_valid(finding)
-        findings.append(finding)
+        findings.append({
+            "description": f"Component found: {component} > {url}/components/{component}/",
+            "details": "Component directory is accessible and contains files"
+        })
 
         check_readme(url, component, findings, proxy)
         check_license(url, component, findings, proxy)
