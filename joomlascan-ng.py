@@ -15,6 +15,10 @@ import xml.etree.ElementTree as ET
 import base64
 import webbrowser
 from datetime import datetime
+import ssl
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+from urllib3.util.ssl_ import create_urllib3_context
 
 class CustomColors:
     DEBUG = '\033[94m'   
@@ -76,6 +80,20 @@ def pop_warning(text):
 def pop_critical(text):
     logging.critical(text)
 
+class SSLAdapter(HTTPAdapter):
+    """
+    A TransportAdapter that allows us to tweak the SSL settings to support weak ciphers
+    or lower security levels.
+    """
+    def __init__(self, ssl_options=None, *args, **kwargs):
+        self.ssl_options = ssl_options
+        super().__init__(*args, **kwargs)
+
+    def init_poolmanager(self, *args, **kwargs):
+        context = create_urllib3_context()
+        if self.ssl_options:
+            context.options |= self.ssl_options  # Allow custom SSL options like lower security levels
+        self.poolmanager = PoolManager(*args, ssl_context=context, **kwargs)
 
 dbarray = []
 url = ""
@@ -102,17 +120,28 @@ def banner():
     print("   Version " + swversion + " - Database Entries " + str(len(dbarray)))
     print("    Originally created by Andrea Draghetti  ")
     print("    python3 version by @bl4ckarch           ")
-    print("-------------------------------------------")
+    ("-------------------------------------------")
 
 def is_url_accessible(url):
-    
+    """
+    Check if the URL is accessible with lower SSL security settings for weak DH keys.
+    Return True if the URL returns a 200 OK status, else False.
+    """
     try:
-        response = requests.get(url, timeout=timeoutconnection)
+        
+        session = requests.Session()
+        
+        
+        ssl_options = ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1  
+        session.mount('https://', SSLAdapter(ssl_options=ssl.OP_SINGLE_DH_USE))  
+        
+        
+        response = session.get(url, timeout=timeoutconnection,verify=False)
         if response.status_code == 200:
             pop_valid(f"URL {url} is accessible.")
             return True
         else:
-            pop_err(f"Site Down, check url please... {url} is not accessible. Status code: {response.status_code}")
+            pop_err(f"URL {url} is not accessible. Status code: {response.status_code}")
             return False
     except requests.exceptions.RequestException as e:
         pop_err(f"Error connecting to {url}: {e}")
@@ -120,14 +149,13 @@ def is_url_accessible(url):
 def check_waf(url):
     
     try:
-        response = requests.get(url)
+        response = requests.get(url,verify=False)
         headers = response.headers
         source = str(headers)
 
         waf_detected = False
         pop_warning("Starting WAF Detector...")
 
-        
         if "cloudflare-nginx" in source or "CF-Chl-Bypass" in source or "cloudflare" in source or "__cfduid" in source:
             pop_warning("Firewall detected: CloudFlare")
             waf_detected = True
@@ -276,7 +304,7 @@ def check_waf(url):
             pop_valid("No Firewall detected.")
 
     except Exception as e:
-        print(f"Error detecting WAF: {e}")
+        pop_err(f"Error detecting WAF: {e}")
 
 def check_misconfig(url):
     configs = ['server-status', 'server-info']
@@ -368,15 +396,15 @@ def check_config_files(url):
             if response.status_code == 200:
                 for keyword in sensitive_keywords:
                     if keyword in response.text:
-                        print(f"Readable config file found: {config_url}")
+                        pop_valid(f"Readable config file found: {config_url}")
                         config_found = True
                         break
 
         except Exception as e:
-            print(f"Error while checking {config_file}: {e}")
+            pop_critical(f"Error while checking {config_file}: {e}")
 
     if not config_found:
-        print("No readable config files found.")
+        pop_warning("No readable config files found.")
 
 def extract_joomla_version_from_site(url):
     """
@@ -409,8 +437,10 @@ def extract_joomla_version_from_site(url):
                     return version_tag.text.strip()
                 else:
                     pop_warning(f"Version tag not found in {endpoint}")
+                
             else:
                 pop_warning(f"Failed to retrieve {endpoint}. HTTP Status Code: {response.status_code}")
+                
 
         except Exception as e:
             pop_warning(f"Error fetching or parsing {endpoint}: {e}")
@@ -598,7 +628,7 @@ def do_report(url, joomla_version, start_time, finish_time, vulnerabilities, fin
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html_template)
 
-    print(f"Report successfully written to '{output_file}'")
+    pop_valid(f"Report successfully written to '{output_file}'")
 
     if file_type == 'html':
         webbrowser.open(output_file)
@@ -845,7 +875,7 @@ def main(argv):
 
     url = arguments.url
     if not (url.startswith("http://") or url.startswith("https://")):
-        print("You must insert http:// or https:// protocol\n")
+        pop_err("You must insert http:// or https:// protocol\n")
         sys.exit(1)
 
     if url.endswith("/"):
@@ -853,7 +883,9 @@ def main(argv):
     if not is_url_accessible(url):
         pop_err("The target URL is not accessible. Exiting...")
         sys.exit(1) 
-
+    if extract_joomla_version_from_site(url) is None:
+        pop_err("The target is not a Joomla website exiting....")
+        sys.exit(1)
     concurrentthreads = arguments.threads
     global pool
     pool = threading.BoundedSemaphore(concurrentthreads)
@@ -898,11 +930,7 @@ def main(argv):
             time.sleep(0.1)
 
         pop_dbg("End Scanner")
-
-
         finish_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
         do_report(url, joomla_version, start_time, finish_time, vulnerabilities=vulnerabilities, findings=findings, file_type='html')
     else:
         pop_err("Site Down, check url please...")
