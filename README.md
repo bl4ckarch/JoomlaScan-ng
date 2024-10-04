@@ -12,17 +12,17 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 - Support for HTTP and HTTPS connections
 - Configurable connection timeout
 - Dockerfile
+- Proxied Requests
 
 ## Upcoming Features
 
-- Proxied Requests
 - Check registration 
 - Check Joomla debug mode on!  
 
 ## Usage
 
 ```bash
-usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d]
+usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d] [-P] 
 ```
 
 ### Optional Arguments:
@@ -34,6 +34,7 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d]
 | `-t THREADS, --threads THREADS` | Number of threads to use (default: 10) |
 | `-v, --version` | Display the version number and exit |
 | `-d, --debug` | Display debug requests during execution |
+| `-P, --proxy` | Send request through a proxy eg http://localhost:8080 |
 
 
 
@@ -61,7 +62,7 @@ $ sudo pip install -r requirements.txt
 - **2016.03.14** - Version 0.2beta: Detection of administrator components and important files like Readme, Changelog, License.
 - **2016.02.12** - Version 0.1beta: Initial release.
 - **2024.03.10** - Version 1.0: python3 release
-- **2024.03.11** - Version 1.1beta: Dockerfile, Vulnerabilities scan and Webpage report
+- **2024.03.11** - Version 1.1beta: Dockerfile, Vulnerabilities scan and Webpage report, proxy
 
 ## License
 
