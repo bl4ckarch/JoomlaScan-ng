@@ -38,7 +38,7 @@ class CustomFormatter(logging.Formatter):
         logging.WARNING: CustomColors.WARNING + "[!!!!][WARNING] " + CustomColors.RESET,
         logging.ERROR: CustomColors.ERROR + "[-][ERROR] " + CustomColors.RESET,
         logging.CRITICAL: CustomColors.CRITICAL + "[CRITICAL] " + CustomColors.RESET,
-        'VALID': CustomColors.VALID + "[+++][VALID] " + CustomColors.RESET,  # Custom color for VALID
+        'VALID': CustomColors.VALID + "[+++][VALID] " + CustomColors.RESET,  
     }
 
     def format(self, record):
@@ -92,7 +92,7 @@ class SSLAdapter(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
         context = create_urllib3_context()
         if self.ssl_options:
-            context.options |= self.ssl_options  # Allow custom SSL options like lower security levels
+            context.options |= self.ssl_options  
         self.poolmanager = PoolManager(*args, ssl_context=context, **kwargs)
 
 dbarray = []
@@ -122,21 +122,20 @@ def banner():
     print("    python3 version by @bl4ckarch           ")
     ("-------------------------------------------")
 
-def is_url_accessible(url):
+def is_url_accessible(url, proxy=None):
     """
     Check if the URL is accessible with lower SSL security settings for weak DH keys.
     Return True if the URL returns a 200 OK status, else False.
     """
     try:
-        
         session = requests.Session()
+        ssl_options = ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+        session.mount('https://', SSLAdapter(ssl_options=ssl.OP_SINGLE_DH_USE))
         
+       
+        proxies = {"http": proxy, "https": proxy} if proxy else None
         
-        ssl_options = ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1  
-        session.mount('https://', SSLAdapter(ssl_options=ssl.OP_SINGLE_DH_USE))  
-        
-        
-        response = session.get(url, timeout=timeoutconnection,verify=False)
+        response = session.get(url, timeout=timeoutconnection, verify=False, proxies=proxies)
         if response.status_code == 200:
             pop_valid(f"URL {url} is accessible.")
             return True
@@ -146,10 +145,12 @@ def is_url_accessible(url):
     except requests.exceptions.RequestException as e:
         pop_err(f"Error connecting to {url}: {e}")
         return False
-def check_waf(url):
-    
+
+def check_waf(url, proxy=None):    
     try:
-        response = requests.get(url,verify=False)
+        proxies = {"http": proxy, "https": proxy} if proxy else None
+        
+        response = requests.get(url, verify=False, proxies=proxies)
         headers = response.headers
         source = str(headers)
 
@@ -306,16 +307,20 @@ def check_waf(url):
     except Exception as e:
         pop_err(f"Error detecting WAF: {e}")
 
-def check_misconfig(url):
+def check_misconfig(url, proxy=None):
     configs = ['server-status', 'server-info']
     misconfig_found = False
 
     pop_info("Checking for misconfigured Apache info/status files...")
 
+     
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for config in configs:
         try:
             config_url = f"{url}/{config}"
-            response = requests.get(config_url)
+            
+            response = requests.get(config_url, proxies=proxies, timeout=timeoutconnection)
             source = response.text
             if ("Apache Server Information" in source or
                 "Server Root" in source or
@@ -329,7 +334,7 @@ def check_misconfig(url):
     if not misconfig_found:
         pop_warning("Readable info/status files are not found.")
 
-def check_backup_files(url):
+def check_backup_files(url, proxy=None):
     backup_files = [
         '1.txt', '2.txt', '1.gz', '1.rar', '1.save', '1.tar', '1.tar.bz2', '1.tar.gz', '1.tgz', '1.tmp', '1.zip',
         '2.back', '2.backup', '2.gz', '2.rar', '2.save', '2.tar', '2.tar.bz2', '2.tar.gz', '2.tgz', '2.tmp', '2.zip',
@@ -355,12 +360,14 @@ def check_backup_files(url):
     backup_found = False
     pop_info("Finding common backup files...")
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for backup_file in backup_files:
         try:
             backup_url = f"{url}/{backup_file}"
-            response = requests.head(backup_url)
-
             
+            response = requests.head(backup_url, proxies=proxies, timeout=timeoutconnection)
+
             if response.status_code == 200 and 'text/html' not in response.headers.get('Content-Type', ''):
                 pop_valid(f"Backup file found: {backup_url}")
                 backup_found = True
@@ -371,8 +378,7 @@ def check_backup_files(url):
     if not backup_found:
         pop_info("No backup files found.")
 
-def check_config_files(url):
-    
+def check_config_files(url, proxy=None):
     config_files = [
         'configuration.php_old', 'configuration.php_new', 'configuration.php~', 'configuration.php.new', 'configuration.php.new~',
         'configuration.php.old', 'configuration.php.old~', 'configuration.bak', 'configuration.php.bak', 'configuration.php.bkp',
@@ -387,12 +393,14 @@ def check_config_files(url):
     
     pop_info("Checking for sensitive config.php files...")
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for config_file in config_files:
         try:
             config_url = f"{url}/{config_file}"
-            response = requests.get(config_url)
-
             
+            response = requests.get(config_url, proxies=proxies, timeout=timeoutconnection)
+
             if response.status_code == 200:
                 for keyword in sensitive_keywords:
                     if keyword in response.text:
@@ -406,7 +414,7 @@ def check_config_files(url):
     if not config_found:
         pop_warning("No readable config files found.")
 
-def extract_joomla_version_from_site(url):
+def extract_joomla_version_from_site(url, proxy=None):
     """
     Fetch and parse the Joomla version from various XML files hosted on the target site.
     """
@@ -418,36 +426,31 @@ def extract_joomla_version_from_site(url):
         'administrator/components/com_media/media.xml',
         'mambots/content/moscode.xml'
     ]
-    
+
+    proxies = {"http": proxy, "https": proxy} if proxy else None
     
     for endpoint in endpoints:
         try:
             joomla_xml_url = f"{url}/{endpoint}"
-            response = requests.get(joomla_xml_url)
+            response = requests.get(joomla_xml_url, proxies=proxies)
 
-            
             if response.status_code == 200:
-                
                 root = ET.fromstring(response.content)
-
-                
                 version_tag = root.find('version')
                 if version_tag is not None:
                     pop_valid(f"Joomla version found in {endpoint}: {version_tag.text.strip()}")
                     return version_tag.text.strip()
                 else:
                     pop_warning(f"Version tag not found in {endpoint}")
-                
             else:
                 pop_warning(f"Failed to retrieve {endpoint}. HTTP Status Code: {response.status_code}")
-                
 
         except Exception as e:
             pop_warning(f"Error fetching or parsing {endpoint}: {e}")
 
-    
     pop_warning("Failed to find Joomla version from the provided endpoints.")
     return None
+
 
 
 def core_joomla_vulnerability_check(ver, url, db_path, vulnerabilities):
@@ -641,10 +644,11 @@ def load_component():
             dbarray.append(line.strip())
 
 
-def check_url(url, path="/"):
+def check_url(url, path="/", proxy=None):
     fullurl = url + path
+    proxies = {"http": proxy, "https": proxy} if proxy else None
     try:
-        conn = requests.get(fullurl, headers=useragentdesktop, timeout=timeoutconnection)
+        conn = requests.get(fullurl, headers=useragentdesktop, timeout=timeoutconnection, proxies=proxies)
         if conn.headers.get("content-length") != "0":
             return conn.status_code
         else:
@@ -653,16 +657,19 @@ def check_url(url, path="/"):
         return None
 
 
-def check_url_head_content_length(url, path="/"):
+
+def check_url_head_content_length(url, path="/", proxy=None):
     fullurl = url + path
+    proxies = {"http": proxy, "https": proxy} if proxy else None
     try:
-        conn = requests.head(fullurl, headers=useragentdesktop, timeout=timeoutconnection)
+        conn = requests.head(fullurl, headers=useragentdesktop, timeout=timeoutconnection, proxies=proxies)
         return conn.headers.get("content-length")
     except Exception:
         return None
 
 
-def check_readme(url, component, findings):
+
+def check_readme(url, component, findings, proxy=None):
     pop_info(f"Checking Readme files")
     readme_paths = [
         f"/components/{component}/README.txt",
@@ -675,8 +682,11 @@ def check_readme(url, component, findings):
         f"/administrator/components/{component}/readme.md"
     ]
 
+    
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+    
     for path in readme_paths:
-        if check_url(url, path) == 200:
+        if check_url(url, path, proxy) == 200:
             finding = {
                 "description": f"README file found > {url}{path}",
                 "details": "This file may contain sensitive information about the component."
@@ -685,7 +695,8 @@ def check_readme(url, component, findings):
             findings.append(finding)
 
 
-def check_license(url, component, findings):
+
+def check_license(url, component, findings, proxy=None):
     pop_info(f"Checking license files")
     license_paths = [
         f"/components/{component}/LICENSE.txt",
@@ -696,8 +707,10 @@ def check_license(url, component, findings):
         f"/administrator/components/{component}/{component[4:]}.xml"
     ]
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for path in license_paths:
-        if check_url(url, path) == 200:
+        if check_url(url, path, proxy) == 200:
             finding = {
                 "description": f"LICENSE file found > {url}{path}",
                 "details": "This file may provide insight into the component's licensing details."
@@ -706,7 +719,8 @@ def check_license(url, component, findings):
             findings.append(finding)
 
 
-def check_changelog(url, component, findings):
+
+def check_changelog(url, component, findings, proxy=None):
     pop_info(f"Checking changelog files")
     changelog_paths = [
         f"/components/{component}/CHANGELOG.txt",
@@ -715,8 +729,10 @@ def check_changelog(url, component, findings):
         f"/administrator/components/{component}/changelog.txt"
     ]
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for path in changelog_paths:
-        if check_url(url, path) == 200:
+        if check_url(url, path, proxy) == 200:
             finding = {
                 "description": f"CHANGELOG file found > {url}{path}",
                 "details": "This file may contain information about updates and fixes."
@@ -725,7 +741,8 @@ def check_changelog(url, component, findings):
             findings.append(finding)
 
 
-def check_mainfest(url, component, findings):
+
+def check_mainfest(url, component, findings, proxy=None):
     pop_info(f"Checking manifest files")
     manifest_paths = [
         f"/components/{component}/MANIFEST.xml",
@@ -734,8 +751,10 @@ def check_mainfest(url, component, findings):
         f"/administrator/components/{component}/manifest.xml"
     ]
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for path in manifest_paths:
-        if check_url(url, path) == 200:
+        if check_url(url, path, proxy) == 200:
             finding = {
                 "description": f"MANIFEST file found > {url}{path}",
                 "details": "This file may contain important metadata about the component."
@@ -744,7 +763,8 @@ def check_mainfest(url, component, findings):
             findings.append(finding)
 
 
-def check_index(url, component, findings):
+
+def check_index(url, component, findings, proxy=None):
     pop_info(f"Checking index files")
     index_paths = [
         f"/components/{component}/index.htm",
@@ -753,8 +773,10 @@ def check_index(url, component, findings):
         f"/administrator/components/{component}/INDEX.html"
     ]
 
+    proxies = {"http": proxy, "https": proxy} if proxy else None
+
     for path in index_paths:
-        content_length = check_url_head_content_length(url, path)
+        content_length = check_url_head_content_length(url, path, proxy)
         if content_length == '200' and int(content_length or 0) > 1000:
             finding = {
                 "description": f"INDEX file descriptive found > {url}{path}",
@@ -762,6 +784,7 @@ def check_index(url, component, findings):
             }
             pop_valid(finding["description"])
             findings.append(finding)
+
 
             
 
@@ -778,17 +801,17 @@ def index_of(url, path="/"):
         return False
 
 
-def scanner(url, component, findings):
-    if check_url(url, f"/index.php?option={component}") == 200:
+def scanner(url, component, findings, proxy=None):
+    if check_url(url, f"/index.php?option={component}", proxy) == 200:
         finding = f"Component found: {component} > {url}/index.php?option={component}"
         pop_valid(finding)
         findings.append(finding)
 
-        check_readme(url, component, findings)
-        check_license(url, component, findings)
-        check_changelog(url, component, findings)
-        check_mainfest(url, component, findings)
-        check_index(url, component, findings)
+        check_readme(url, component, findings, proxy)
+        check_license(url, component, findings, proxy)
+        check_changelog(url, component, findings, proxy)
+        check_mainfest(url, component, findings, proxy)
+        check_index(url, component, findings, proxy)
 
         if index_of(url, f"/components/{component}/"):
             pop_valid(f"\t Explorable Directory \t > {url}/components/{component}/")
@@ -804,19 +827,19 @@ def scanner(url, component, findings):
                 "details": "Administrator directory is accessible"
             })
 
-    elif check_url(url, f"/components/{component}/") == 200:
+    elif check_url(url, f"/components/{component}/", proxy) == 200:
         pop_valid(f"Component found: {component} > {url}/components/{component}/")
         findings.append({
-                "description": f"Component found: {component} > {url}/components/{component}/",
-                "details": "Component directory is accessible and contains files"
-            })
+            "description": f"Component found: {component} > {url}/components/{component}/",
+            "details": "Component directory is accessible and contains files"
+        })
         pop_warning("\t But possibly it is not active or protected")
 
-        check_readme(url, component, findings)
-        check_license(url, component, findings)
-        check_changelog(url, component, findings)
-        check_mainfest(url, component, findings)
-        check_index(url, component, findings)
+        check_readme(url, component, findings, proxy)
+        check_license(url, component, findings, proxy)
+        check_changelog(url, component, findings, proxy)
+        check_mainfest(url, component, findings, proxy)
+        check_index(url, component, findings, proxy)
 
         if index_of(url, f"/components/{component}/"):
             pop_valid(f"Explorable Directory > {url}/components/{component}/")
@@ -832,28 +855,8 @@ def scanner(url, component, findings):
                 "details": "Administrator directory is accessible"
             })
 
-    elif check_url(url, f"/administrator/components/{component}/") == 200:
-        pop_valid(f"Component found: {component} > {url}/administrator/components/{component}/")
-        findings.append({
-                "description": f"Component found: {component} > {url}/administrator/components/{component}/",
-                "details": "Component directory is accessible and contains files"
-            })
-        pop_warning("\t But possibly it is not active or protected")
-
-        check_readme(url, component, findings)
-        check_license(url, component, findings)
-        check_changelog(url, component, findings)
-        check_mainfest(url, component, findings)
-        check_index(url, component, findings)
-
-        if index_of(url, f"/administrator/components/{component}/"):
-            pop_valid(f"\t Explorable Directory \t > {url}/administrator/components/{component}/")
-            findings.append({
-                "description": f"Explorable Directory > {url}/administrator/components/{component}/",
-                "details": "Administrator directory is accessible"
-            })
-
     pool.release()
+
 
 
 
@@ -867,6 +870,7 @@ def main(argv):
         parser.add_argument("-t", "--threads", type=int, default=10, help="The number of threads to use (default: 10).")
         parser.add_argument("-d", "--debug", action="store_true", help="Enable debug output.")
         parser.add_argument("-v", "--version", action="version", version="%(prog)s " + swversion)
+        parser.add_argument("-P", "--proxy", help="Send requests through a proxy (e.g., http://127.0.0.1:8080).")
         arguments = parser.parse_args()
     except Exception as e:
         sys.exit(1)
@@ -874,18 +878,23 @@ def main(argv):
     setup_logging(arguments.debug)
 
     url = arguments.url
+    proxy = arguments.proxy  
+
     if not (url.startswith("http://") or url.startswith("https://")):
         pop_err("You must insert http:// or https:// protocol\n")
         sys.exit(1)
 
     if url.endswith("/"):
         url = url[:-1]
-    if not is_url_accessible(url):
+
+    if not is_url_accessible(url, proxy):  
         pop_err("The target URL is not accessible. Exiting...")
-        sys.exit(1) 
-    if extract_joomla_version_from_site(url) is None:
-        pop_err("The target is not a Joomla website exiting....")
         sys.exit(1)
+
+    if extract_joomla_version_from_site(url, proxy) is None:  
+        pop_err("The target is not a Joomla website. Exiting...")
+        sys.exit(1)
+
     concurrentthreads = arguments.threads
     global pool
     pool = threading.BoundedSemaphore(concurrentthreads)
@@ -895,13 +904,14 @@ def main(argv):
     vulnerabilities = []
     findings = []
 
-    if check_url(url) != 404:
-        check_waf(url)
-        check_misconfig(url)
-        check_backup_files(url)
-        check_config_files(url)
+    
+    if check_url(url, path="/", proxy=proxy) != 404:
+        check_waf(url, proxy)
+        check_misconfig(url, proxy)
+        check_backup_files(url, proxy)
+        check_config_files(url, proxy)
 
-        joomla_version = extract_joomla_version_from_site(url)
+        joomla_version = extract_joomla_version_from_site(url, proxy)
         db_path = "./db"
         if joomla_version:
             pop_info(f"Detected Joomla version: {joomla_version}")
@@ -909,12 +919,12 @@ def main(argv):
         else:
             pop_critical("Failed to extract Joomla version.")
 
-        if check_url(url, "/robots.txt") == 200:
+        if check_url(url, "/robots.txt", proxy) == 200:
             pop_valid(f"Robots file found: \t \t > {url}/robots.txt")
         else:
             pop_dbg("No Robots file found")
 
-        if check_url(url, "/error_log") == 200:
+        if check_url(url, "/error_log", proxy) == 200:
             pop_info(f"Error log found: \t \t > {url}/error_log")
         else:
             pop_dbg("No Error Log found")
@@ -923,7 +933,7 @@ def main(argv):
 
         for component in dbarray:
             pool.acquire(blocking=True)
-            t = threading.Thread(target=scanner, args=(url, component, findings))
+            t = threading.Thread(target=scanner, args=(url, component, findings, proxy))  # Pass proxy
             t.start()
 
         while threading.active_count() > 1:
@@ -934,6 +944,7 @@ def main(argv):
         do_report(url, joomla_version, start_time, finish_time, vulnerabilities=vulnerabilities, findings=findings, file_type='html')
     else:
         pop_err("Site Down, check url please...")
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
