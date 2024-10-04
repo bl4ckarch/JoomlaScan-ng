@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, 3.10]  # Specify valid Python versions
+        python-version: [3.10, 3.11]  # Specify valid Python versions
 
     steps:
     - name: Checkout code
@@ -60,7 +60,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10  # You can customize the Python version for build
+        python-version: 3.11  # You can customize the Python version for build
 
     - name: Install dependencies
       run: |
