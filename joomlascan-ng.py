@@ -108,7 +108,7 @@ useragentdesktop = {
 }
 timeoutconnection = 5
 pool = None
-swversion = "1.0"
+swversion = "1.2"
 
 # Function to display the banner using rich
 def banner():
@@ -121,11 +121,11 @@ def banner():
                                                                       |___/ 
     """, style="bold cyan")
     
-    info_text = Text("""
+    info_text = Text(f"""
 --------------------------------------------
             Joomla Scan-ng                 
    Usage: python3 joomlascan-ng.py -u <target> 
-   Version 1.0 - Database Entries 1219
+   Version {swversion} - Database Entries 1219
     Originally created by Andrea Draghetti  
     python3 version by @bl4ckarch
 --------------------------------------------
