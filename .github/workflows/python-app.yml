@@ -35,7 +35,19 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Build .deb package
+      run: |
+        mkdir -p deb_build
+        dpkg-deb --build joomlascan-ng-1.2b deb_build/joomlascan-ng-1.2b.deb
+
+    - name: Install .deb package
+      run: |
+        sudo dpkg -i deb_build/joomlascan-ng-1.2b.deb || sudo apt-get install -f
+
+    - name: Verify installed package
+      run: |
+        joomlascan-ng --version
+
     - name: Run tests
       run: |
-        # Run your test command here
         python -m unittest discover
