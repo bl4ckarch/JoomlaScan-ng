@@ -46,7 +46,7 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d] [-P]
 ## Screenshot
 
 - Example scan  
-![Screenshot](img/demo.gif)
+![Screenshot](img/example.png)
 
 - Example output file in html
 
