@@ -1,0 +1,9 @@
+Package: joomlascan-ng
+Version: 1.2b
+Section: utils
+Priority: optional
+Architecture: all
+Depends: python3
+Maintainer: Your Name @bl4ckarch
+Description: JoomlaScan-ng is a Joomla vulnerability scanner tool.
+ This tool is used for scanning Joomla-based websites for vulnerabilities.
