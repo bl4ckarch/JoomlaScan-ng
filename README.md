@@ -22,7 +22,8 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 
 ## Upcoming Features
 
-
+- Randomized Usersagents for stealthness
+- Continous Vulns db update
 
 ## Usage
 
