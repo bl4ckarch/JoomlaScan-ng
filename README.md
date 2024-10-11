@@ -13,11 +13,16 @@ A free and open-source tool to detect installed components on Joomla CMS sites, 
 - Configurable connection timeout
 - Dockerfile
 - Proxied Requests
+- Check registration
+- Debianized version of the tool
+- Check Joomla debug mode on!
+- More colorized verbosing using rich lib with some emojis Nidal😉  
+
+
 
 ## Upcoming Features
 
-- Check registration 
-- Check Joomla debug mode on!  
+
 
 ## Usage
 
@@ -41,7 +46,7 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d] [-P]
 ## Screenshot
 
 - Example scan  
-![Screenshot](img/example.png)
+![Screenshot](img/demo.gif)
 
 - Example output file in html
 
@@ -53,6 +58,12 @@ usage: python3 joomlascan-ng.py [-h] [-u URL] [-t THREADS] [-v] [-d] [-P]
 ```bash
 $ sudo pip install -r requirements.txt
 ```
+### For Debian .deb package users
+     If you have installed JoomlaScan-ng using the .deb package, please ensure the following Python dependencies are installed on your system:
+- Python 3
+```bash
+$ sudo pip install beautifulsoup4 requests lxml
+```
 
 ## Changelog
 
@@ -61,10 +72,8 @@ $ sudo pip install -r requirements.txt
 - **2016.03.18** - Version 0.3beta: Detection of index files in component directories.
 - **2016.03.14** - Version 0.2beta: Detection of administrator components and important files like Readme, Changelog, License.
 - **2016.02.12** - Version 0.1beta: Initial release.
-- **2024.03.10** - Version 1.0: python3 release
-- **2024.03.11** - Version 1.1beta: Dockerfile, Vulnerabilities scan and Webpage report, proxy
-
+- **2024.10.03** - Version 1.0: python3 release
+- **2024.10.05** - Version 1.1beta: Dockerfile, Vulnerabilities scan and Webpage report, proxy
+- **2024.10.10** - Version 1.2beta: .deb package check registration and check debug mode on
 ## License
-
 Licensed under the GNU General Public License v3.0.
-

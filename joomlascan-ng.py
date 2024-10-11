@@ -19,66 +19,71 @@ import ssl
 from requests.adapters import HTTPAdapter
 from urllib3.poolmanager import PoolManager
 from urllib3.util.ssl_ import create_urllib3_context
+import re
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.text import Text
+import warnings
 
-class CustomColors:
-    DEBUG = '\033[94m'   
-    INFO = '\033[92m'    
-    VALID = '\033[96m'   
-    WARNING = '\033[93m' 
-    ERROR = '\033[91m'   
-    CRITICAL = '\033[95m'
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+# Suppress all warnings
+warnings.filterwarnings('ignore')
+# Initialize rich console
+console = Console()
 
-class CustomFormatter(logging.Formatter):
-    
-    format_dict = {
-        logging.DEBUG: CustomColors.DEBUG + "[DEBUG] " + CustomColors.RESET,
-        logging.INFO: CustomColors.INFO + "[+][INFO] " + CustomColors.RESET,
-        logging.WARNING: CustomColors.WARNING + "[!!!!][WARNING] " + CustomColors.RESET,
-        logging.ERROR: CustomColors.ERROR + "[-][ERROR] " + CustomColors.RESET,
-        logging.CRITICAL: CustomColors.CRITICAL + "[CRITICAL] " + CustomColors.RESET,
-        'VALID': CustomColors.VALID + "[+++][VALID] " + CustomColors.RESET,  
-    }
-
-    def format(self, record):
-        log_fmt = self.format_dict.get(getattr(record, 'levelname', logging.INFO), self.format_dict.get(record.levelno))
-        formatter = logging.Formatter('%(asctime)s ' + log_fmt + '%(message)s', "%Y-%m-%d %H:%M:%S")
-        return formatter.format(record)
-
-
+# Define a new log level 'VALID'
 VALID_LEVEL_NUM = 25
-logging.addLevelName(VALID_LEVEL_NUM, 'VALID')
+logging.addLevelName(VALID_LEVEL_NUM, "VALID")
 
-def pop_valid(text):
-    logging.log(VALID_LEVEL_NUM, text)
+def valid(self, message, *args, **kwargs):
+    if self.isEnabledFor(VALID_LEVEL_NUM):
+        self._log(VALID_LEVEL_NUM, message, args, **kwargs)
 
+logging.Logger.valid = valid  # Add 'valid' method to logger
 
-handler = logging.StreamHandler()
-handler.setFormatter(CustomFormatter())
+# Custom RichHandler to handle coloring for VALID messages
+class CustomRichHandler(RichHandler):
+    def get_level_style(self, level: int):
+        if level == VALID_LEVEL_NUM:  # Custom log level for VALID
+            return "cyan"  # Style for VALID log level
+        return super().get_level_style(level)
 
+# Modify the RichHandler to enable coloring for all log levels
+handler = CustomRichHandler(
+    console=console,
+    show_time=True,          # Show time for each log message
+    show_level=True,         # Show the log level
+    show_path=False,         # Optionally show the source file and line number
+    rich_tracebacks=True     # Enable rich-formatted tracebacks
+)
+
+# Set up logging to handle custom levels and output formatting
 def setup_logging(debug_mode):
-    """Set up logging level based on the debug flag."""
-    if debug_mode:
-        logging.basicConfig(level=logging.DEBUG, handlers=[handler])
-    else:
-        logging.basicConfig(level=logging.INFO, handlers=[handler])
+    logging.basicConfig(
+        level=logging.DEBUG if debug_mode else logging.INFO,
+        handlers=[handler],
+        format="%(message)s"
+    )
 
+# Helper functions for logging at various levels
+def pop_valid(text):
+    logging.getLogger().valid(f"✅{text}")  # Log at VALID level
 
 def pop_err(text):
-    logging.error(text)
+    logging.error(f"⛔ {text}")
 
 def pop_dbg(text):
-    logging.debug(text)
+    logging.debug(f"🧑‍🔧 {text}")
 
 def pop_info(text):
-    logging.info(text)
+    logging.info(f"ℹ️ {text}")
 
 def pop_warning(text):
-    logging.warning(text)
+    logging.warning(f"⚠️ {text}")
 
 def pop_critical(text):
-    logging.critical(text)
+    logging.critical(f"☢️ {text}")
+
+# Function to display the banner using rich
 
 class SSLAdapter(HTTPAdapter):
     """
@@ -105,22 +110,30 @@ timeoutconnection = 5
 pool = None
 swversion = "1.0"
 
+# Function to display the banner using rich
 def banner():
-    print("""
+    banner_text = Text("""
    __                        _         __                                   
    \ \  ___   ___  _ __ ___ | | __ _  / _\ ___ __ _ _ __        _ __   __ _ 
     \ \/ _ \ / _ \| '_ ` _ \| |/ _` | \ \ / __/ _` | '_ \ _____| '_ \ / _` |
  /\_/ / (_) | (_) | | | | | | | (_| | _\ \ (_| (_| | | | |_____| | | | (_| |
  \___/ \___/ \___/|_| |_| |_|_|\__,_| \__/\___\__,_|_| |_|     |_| |_|\__, |
                                                                       |___/ 
-    """)
-    print("--------------------------------------------")
-    print("      	    Joomla Scan-ng                 ")
-    print("   Usage: python3 joomlascan-ng.py -u <target> ")
-    print("   Version " + swversion + " - Database Entries " + str(len(dbarray)))
-    print("    Originally created by Andrea Draghetti  ")
-    print("    python3 version by @bl4ckarch           ")
-    ("-------------------------------------------")
+    """, style="bold cyan")
+    
+    info_text = Text("""
+--------------------------------------------
+            Joomla Scan-ng                 
+   Usage: python3 joomlascan-ng.py -u <target> 
+   Version 1.0 - Database Entries 1219
+    Originally created by Andrea Draghetti  
+    python3 version by @bl4ckarch
+--------------------------------------------
+    """, style="bold green")
+
+    console.print(banner_text)
+    console.print(info_text)
+
 
 def is_url_accessible(url, proxy=None):
     """
@@ -788,11 +801,6 @@ def check_index(url, component, findings, proxy=None):
             pop_valid(finding["description"])
             findings.append(finding)
 
-
-            
-
-
-
 def index_of(url, path="/"):
     fullurl = url + path
     try:
@@ -803,6 +811,68 @@ def index_of(url, path="/"):
     except Exception:
         return False
 
+def check_user_registration(url, findings, proxy=None):
+    """
+    Check if user registration is enabled on a Joomla site and append it to findings.
+    It looks for specific patterns in the registration page source that indicate a registration form.
+    """
+    registration_url = f"{url}/index.php?option=com_users&view=registration"
+    pop_info("Checking user registration")
+    
+    try:
+        if proxy:
+            response = requests.get(registration_url, proxies={"http": proxy, "https": proxy}, timeout=timeoutconnection)
+        else:
+            response = requests.get(registration_url, timeout=timeoutconnection)
+        
+        source = response.text
+        
+        if re.search(r'registration.register', source) or re.search(r'jform_password2', source) or re.search(r'jform_email2', source):
+            finding = {
+                "description": "User registration enabled",
+                "details": f"Registration is enabled at {registration_url}"
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
+            return True
+        else:
+            pop_info("User registration is disabled or not found.")
+            return False
+
+    except Exception as e:
+        pop_critical(f"Error while checking user registration: {e}")
+        return False
+
+def check_debug_mode(url, findings, proxy=None):
+    """
+    Check if debug mode is enabled on a Joomla site and append it to findings.
+    It looks for specific patterns in the page source that indicate debug mode is active.
+    """
+    pop_info("Checking Debug Mode status")
+    
+    try:
+        if proxy:
+            response = requests.get(url, proxies={"http": proxy, "https": proxy}, timeout=timeoutconnection)
+        else:
+            response = requests.get(url, timeout=timeoutconnection)
+        
+        source = response.text
+        
+        if re.search(r'Joomla! Debug Console', source) or re.search(r'xdebug\.org/docs/all_settings', source):
+            finding = {
+                "description": "Debug mode enabled",
+                "details": f"Debug mode is enabled at {url}"
+            }
+            pop_valid(finding["description"])
+            findings.append(finding)
+            return True
+        else:
+            pop_info("Debug mode is disabled or not found.")
+            return False
+
+    except Exception as e:
+        pop_critical(f"Error while checking Debug Mode: {e}")
+        return False
 
 def scanner(url, component, findings, proxy=None):
     if check_url(url, f"/index.php?option={component}", proxy) == 200:
@@ -812,6 +882,7 @@ def scanner(url, component, findings, proxy=None):
             "details": "Component directory is accessible and contains files"
         })
 
+        
         check_readme(url, component, findings, proxy)
         check_license(url, component, findings, proxy)
         check_changelog(url, component, findings, proxy)
@@ -912,9 +983,11 @@ def main(argv):
     
     if check_url(url, path="/", proxy=proxy) != 404:
         check_waf(url, proxy)
+        check_user_registration(url, findings, proxy)
         check_misconfig(url, proxy)
         check_backup_files(url, proxy)
         check_config_files(url, proxy)
+        check_debug_mode(url, findings, proxy=None)
 
         joomla_version = extract_joomla_version_from_site(url, proxy)
         db_path = "./db"
